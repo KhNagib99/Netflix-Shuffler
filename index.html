@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>StreamLab — Netflix Picker</title>
+  <style>
+    :root{
+      --bg:#0a0a0a; --surface:#0f0f0f; --elev:#141414; --ink:#fafafa; --muted:#a1a1aa; --line:#222; --hit:#ffffff; --hit2:#e5e5e5;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-webkit-text-size-adjust:100%;}
+    a{color:var(--ink);text-decoration:none}
+    img{max-width:100%;height:auto;}
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+
+    header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.9);backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--line)}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(12px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 12px calc(16px + env(safe-area-inset-left))}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--hit);}
+    .brand h1{margin:0;font-size:18px;letter-spacing:.18em;text-transform:uppercase;font-weight:800}
+    .nav-actions{display:flex;gap:10px}
+
+    .hero{border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));}
+    .hero .container{padding:24px 16px}
+    .kicker{color:var(--muted);text-transform:uppercase;letter-spacing:.2em;font-size:11px;margin-bottom:6px}
+    .headline{font-size:clamp(24px,5vw,42px);line-height:1.1;font-weight:900;margin:0}
+    .sub{color:#d4d4d8;margin-top:8px;max-width:70ch;font-size:14px}
+
+    .controls{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .col-12{grid-column:span 12}
+    @media(min-width:600px){.col-6{grid-column:span 6}}
+    @media(min-width:820px){.col-3{grid-column:span 3}}
+    label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.16em;margin-bottom:6px}
+    select,input[type="range"],.seg,.btn{width:100%}
+    select,input[type="range"]{appearance:none;background:var(--elev);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;min-height:44px}
+    .seg{display:flex;gap:8px}
+    .seg .btn{flex:1}
+
+    .btn{cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:14px 18px;min-height:44px;background:var(--elev);color:var(--ink);font-weight:700;letter-spacing:.02em;font-size:14px;transition:transform .08s ease, box-shadow .2s ease, border-color .2s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    @media(hover:hover){.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.35)}}
+    .btn[aria-pressed="true"],.btn.accent{background:var(--ink);color:#0a0a0a;border-color:#0a0a0a}
+
+    .action-row{display:flex;flex-wrap:wrap;gap:10px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-top:18px}
+    @media(min-width:768px){.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.005));border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s ease, box-shadow .25s ease, border-color .2s ease}
+    @media(hover:hover){.card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:#2a2a2a}}
+    .poster{aspect-ratio:2/3;background:#0b0b0b;display:flex;align-items:center;justify-content:center}
+    .poster img{width:100%;height:100%;object-fit:cover;display:block}
+    .meta{padding:12px}
+    .title{font-weight:800;line-height:1.15;font-size:15px;letter-spacing:.01em}
+    .chip-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:6px}
+    .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .overview{font-size:13px;color:#e5e5e5;margin-top:8px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+    .link{font-size:12px;color:var(--hit2);text-transform:uppercase;letter-spacing:.16em}
+    .link:hover{text-decoration:underline}
+
+    /* Loading spinner bound to data-loading attribute */
+    #results[data-loading="true"]::before{
+      content:"";display:block;width:44px;height:44px;margin:28px auto 8px auto;
+      border:3px solid #2a2a2a;border-top-color:#ffffff;border-radius:50%;
+      animation:spin .9s linear infinite
+    }
+    #results[data-loading="true"]::after{
+      content:"Finding titles…";display:block;text-align:center;color:var(--muted);font-size:12px;margin-bottom:8px
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .error{background:#7f1d1d;color:#fee2e2;padding:12px;border-radius:8px;margin-top:12px;font-size:14px;text-align:center}
+
+    footer{border-top:1px solid var(--line);margin-top:28px}
+    footer .container{padding:16px;color:var(--muted);text-align:center;font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <div class="brand">
+        <div class="dot"></div>
+        <h1>StreamLab</h1>
+      </div>
+      <div class="nav-actions">
+        <a class="btn" href="#results">Discover</a>
+        <button id="btnRandom" class="btn" title="Pick one at random from results">Random</button>
+      </div>
+    </nav>
+    <section class="hero">
+      <div class="container">
+        <div class="kicker">Netflix-focused • Region-aware</div>
+        <h2 class="headline">Find your next Movie or Series</h2>
+        <p class="sub">Minimal. Fast. Tech-savvy. Filter by type, region, genre, and rating. See posters, overviews, and ratings at a glance.</p>
+      </div>
+    </section>
+  </header>
+
+  <div class="container">
+    <section class="controls">
+      <div class="grid12">
+        <div class="col-6 col-3">
+          <label>Type</label>
+          <div class="seg">
+            <button id="btnMovie" class="btn" aria-pressed="true">Movie</button>
+            <button id="btnTV" class="btn" aria-pressed="false">Series</button>
+          </div>
+        </div>
+        <div class="col-6 col-3">
+          <label>Region</label>
+          <select id="regionSelect"></select>
+        </div>
+        <div class="col-6 col-3">
+          <label>Genre</label>
+          <select id="genreSelect"><option value="">Any</option></select>
+        </div>
+        <div class="col-6 col-3">
+          <label>Min rating: <span id="ratingValue">6.5</span></label>
+          <input type="range" id="minRating" min="0" max="9" step="0.5" value="6.5" />
+        </div>
+        <div class="col-12 action-row">
+          <button id="btnSuggest" class="btn accent">Suggest titles</button>
+        </div>
+      </div>
+    </section>
+    <section id="results" class="grid" aria-live="polite" aria-busy="false"></section>
+    <div id="errorBox" class="error" style="display:none"></div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>* Availability is inferred from TMDB watch providers per region. Data & posters © TMDB contributors. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+    </div>
+  </footer>
+
+<script>
+const TMDB_KEY = "daa745e9c8be7937a25bed1106d9c723";
+const DEFAULT_REGION = "BD";
+const IMG_BASE = "https://image.tmdb.org/t/p/w342";
+let currentType = "movie";
+let cachedGenres = { movie: [], tv: [] };
+let cachedProviderIdByRegion = {};
+let lastResults = [];
+
+const regionSelect=document.getElementById('regionSelect');
+const genreSelect=document.getElementById('genreSelect');
+const ratingRange=document.getElementById('minRating');
+const ratingValue=document.getElementById('ratingValue');
+const resultsEl=document.getElementById('results');
+const btnMovie=document.getElementById('btnMovie');
+const btnTV=document.getElementById('btnTV');
+const btnSuggest=document.getElementById('btnSuggest');
+const btnRandom=document.getElementById('btnRandom');
+const errorBox=document.getElementById('errorBox');
+
+bootstrap();
+
+async function bootstrap(){
+  const regions=[{code:'BD',name:'Bangladesh'},{code:'IN',name:'India'},{code:'US',name:'United States'},{code:'GB',name:'United Kingdom'},{code:'CA',name:'Canada'},{code:'AU',name:'Australia'},{code:'SG',name:'Singapore'},{code:'AE',name:'UAE'}];
+  regions.forEach(r=>{const opt=document.createElement('option');opt.value=r.code;opt.textContent=`${r.name} (${r.code})`;regionSelect.appendChild(opt)});
+  regionSelect.value=DEFAULT_REGION;
+  ratingRange.addEventListener('input',()=>ratingValue.textContent=ratingRange.value,{passive:true});
+  btnMovie.addEventListener('click',()=>setType('movie'));
+  btnTV.addEventListener('click',()=>setType('tv'));
+  btnSuggest.addEventListener('click',suggest);
+  btnRandom.addEventListener('click',pickRandom);
+  await loadGenres('movie');
+}
+
+function setType(t){currentType=t;btnMovie.setAttribute('aria-pressed',t==='movie');btnTV.setAttribute('aria-pressed',t==='tv');loadGenres(t)}
+
+async function loadGenres(t){genreSelect.innerHTML='<option value="">Any</option>';if(!cachedGenres[t].length){const url=`https://api.themoviedb.org/3/genre/${t}/list?api_key=${TMDB_KEY}&language=en-US`;try{const data=await fetchJSON(url);cachedGenres[t]=data.genres||[]}catch(e){showError("Failed to load genres. Please try again later.")}}cachedGenres[t].forEach(g=>{const opt=document.createElement('option');opt.value=g.id;opt.textContent=g.name;genreSelect.appendChild(opt)})}
+
+async function getNetflixProviderId(region){if(cachedProviderIdByRegion[region])return cachedProviderIdByRegion[region];const url=`https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_KEY}&watch_region=${region}`;try{const data=await fetchJSON(url);const netflix=(data.results||[]).find(p=>p.provider_name==='Netflix');const id=netflix?netflix.provider_id:8;cachedProviderIdByRegion[region]=id;return id}catch(e){showError("Could not fetch Netflix provider info.");return 8}}
+
+async function suggest(){const region=regionSelect.value||DEFAULT_REGION;const genreId=genreSelect.value;const minRating=Number(ratingRange.value);resultsEl.setAttribute('aria-busy','true');resultsEl.setAttribute('data-loading','true');resultsEl.innerHTML='';hideError();try{const providerId=await getNetflixProviderId(region);const base=`https://api.themoviedb.org/3/discover/${currentType}?api_key=${TMDB_KEY}`+`&watch_region=${region}&with_watch_providers=${providerId}`+`&with_watch_monetization_types=flatrate&include_adult=false&language=en-US`+`&sort_by=popularity.desc`+(genreId?`&with_genres=${genreId}`:'')+`&vote_average.gte=${minRating}`;const first=await fetchJSON(base+`&page=1`);const pages=Math.min(4,first.total_pages||1);const promises=[first,...Array.from({length:pages-1},(_,i)=>fetchJSON(base+`&page=${i+2}`))];let all=[];const pageData=await Promise.all(promises);for(const r of pageData){if(r&&r.results){all=all.concat(r.results)}}const uniq=new Map();for(const item of all){if(!item.poster_path||!item.overview)continue;if(item.vote_count<50)continue;uniq.set(`${currentType}-${item.id}`,item)}lastResults=Array.from(uniq.values()).slice(0,24);if(!lastResults.length){resultsEl.innerHTML='<p style="color:#fca5a5">No matches. Try another genre/region or lower the rating.</p>'}else{renderCards(lastResults)}resultsEl.removeAttribute('data-loading');resultsEl.setAttribute('aria-busy','false')}catch(e){showError("Something went wrong while fetching data. Please try again.");resultsEl.removeAttribute('data-loading');resultsEl.setAttribute('aria-busy','false')}}
+
+function renderCards(items){resultsEl.innerHTML=items.map(toCardHTML).join('')}
+function toCardHTML(item){const name=currentType==='movie'?(item.title||item.original_title):(item.name||item.original_name);const year=(item.release_date||item.first_air_date||'').slice(0,4);const poster=item.poster_path?`${IMG_BASE}${item.poster_path}`:'';const rating=((item.vote_average!=null?item.vote_average:0)).toFixed(1);const typeLabel=currentType==='movie'?'Movie':'Series';return `<article class="card"><div class="poster">${poster?`<img loading="lazy" alt="${escapeHTML(name)} poster" src="${poster}">`:'<span>No poster</span>'}</div><div class="meta"><div class="title">${escapeHTML(name)}</div><div class="chip-row"><span class="chip">★ ${rating}</span><span class="chip">${typeLabel}${year?` • ${year}`:''}</span></div><div class="overview">${escapeHTML(item.overview)}</div><div style="margin-top:10px"><a class="link" href="https://www.netflix.com/search?q=${encodeURIComponent(name)}" target="_blank" rel="noopener">Search on Netflix</a></div></div></article>`}
+function pickRandom(){if(!lastResults.length){btnSuggest.click();return}const one=lastResults[Math.floor(Math.random()*lastResults.length)];renderCards([one])}
+
+async function fetchJSON(url){const res=await fetch(url);if(!res.ok)throw new Error(`HTTP ${res.status} for ${url}`);return res.json()}
+function escapeHTML(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function showError(msg){errorBox.style.display='block';errorBox.textContent=msg}
+function hideError(){errorBox.style.display='none';errorBox.textContent=''}
+</script>
+</body>
+</html>
