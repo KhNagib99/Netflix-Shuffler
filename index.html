@@ -16,12 +16,7 @@
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%}
-    body{
-      margin:0;
-      font-family:'Space Grotesk', Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background:var(--bg); color:var(--ink);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; -webkit-text-size-adjust:100%;
-    }
+    body{margin:0;font-family:'Space Grotesk', Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-webkit-text-size-adjust:100%;}
     a{color:var(--ink);text-decoration:none}
     img{max-width:100%;height:auto;}
     .container{max-width:1200px;margin:0 auto;padding:16px}
@@ -33,6 +28,14 @@
     .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--hit);}
     .brand h1{margin:0;font-size:18px;letter-spacing:.18em;text-transform:uppercase;font-weight:800}
     .nav-actions{display:flex;gap:10px;align-items:center}
+
+    /* Theme switch */
+    .switch{position:relative;display:inline-block;width:56px;height:32px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;inset:0;background:#1f1f1f;border:1px solid var(--line);border-radius:999px;transition:.2s}
+    .slider:before{content:"";position:absolute;height:24px;width:24px;left:4px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+    input:checked + .slider{background:var(--accent)}
+    input:checked + .slider:before{transform:translateX(24px)}
 
     .hero{border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));}
     .hero .container{padding:24px 16px}
@@ -47,23 +50,21 @@
     @media(min-width:600px){.col-6{grid-column:span 6}}
     @media(min-width:820px){.col-3{grid-column:span 3}}
     label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.16em;margin-bottom:6px}
-    select,input[type="range"],input[type="number"],.seg,.btn{width:100%}
-    select,input[type="range"],input[type="number"]{appearance:none;background:var(--elev);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;min-height:44px}
+    select,input[type="range"],.seg,.btn{width:100%}
+    select,input[type="range"]{appearance:none;background:var(--elev);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:16px;min-height:48px}
+    @supports (-webkit-touch-callout: none){ select,input{ font-size:16px } }
     .seg{display:flex;gap:8px}
     .seg .btn{flex:1}
 
-    .btn{
-      cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:14px 18px;min-height:44px;
-      background:var(--elev);color:var(--ink);font-weight:700;letter-spacing:.02em;font-size:14px;
-      transition:transform .08s ease, box-shadow .2s ease, border-color .2s ease; touch-action:manipulation
-    }
+    .btn{cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:14px 18px;min-height:48px;background:var(--elev);color:var(--ink);font-weight:700;letter-spacing:.02em;font-size:16px;transition:transform .08s ease, box-shadow .2s ease, border-color .2s ease;touch-action:manipulation}
     @media(hover:hover){.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.35)}}
     .btn[aria-pressed="true"],.btn.accent{background:var(--accent);color:#0a0a0a;border-color:var(--accent)}
 
     .action-row{display:flex;flex-wrap:wrap;gap:10px}
+    .action-row .btn{flex:1 1 100%}
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-top:18px}
-    @media(min-width:768px){.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;margin-top:18px}
+    @media(min-width:768px){.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.005));border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s ease, box-shadow .25s ease, border-color .2s ease}
     @media(hover:hover){.card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:#2a2a2a}}
     .poster{aspect-ratio:2/3;background:#0b0b0b;display:flex;align-items:center;justify-content:center;position:relative}
@@ -76,6 +77,7 @@
     .chip-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:6px}
     .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
     .overview{font-size:13px;color:#e5e5e5;margin-top:8px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+    .overview.expanded{display:block;-webkit-line-clamp:unset;overflow:visible}
     :root[data-theme="light"] .overview{color:#222}
     .row-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
     .link{font-size:12px;color:var(--hit2);text-transform:uppercase;letter-spacing:.16em}
@@ -83,14 +85,8 @@
 
     .error{background:#7f1d1d;color:#fee2e2;padding:12px;border-radius:8px;margin-top:12px;font-size:14px;text-align:center}
 
-    #results[data-loading="true"]::before{
-      content:"";display:block;width:44px;height:44px;margin:28px auto 8px auto;
-      border:3px solid #2a2a2a;border-top-color:#ffffff;border-radius:50%;
-      animation:spin .9s linear infinite
-    }
-    #results[data-loading="true"]::after{
-      content:"Finding titles…";display:block;text-align:center;color:var(--muted);font-size:12px;margin-bottom:8px
-    }
+    #results[data-loading="true"]::before{content:"";display:block;width:44px;height:44px;margin:28px auto 8px auto;border:3px solid #2a2a2a;border-top-color:#ffffff;border-radius:50%;animation:spin .9s linear infinite}
+    #results[data-loading="true"]::after{content:"Finding titles…";display:block;text-align:center;color:var(--muted);font-size:12px;margin-bottom:8px}
     @keyframes spin{to{transform:rotate(360deg)}}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
@@ -102,7 +98,13 @@
     footer{border-top:1px solid var(--line);margin-top:28px}
     footer .container{padding:16px;color:var(--muted);text-align:center;font-size:12px}
 
-    @media (prefers-reduced-motion: reduce){ .btn, .card { transition:none !important } }
+    @media (max-width:480px){
+      .nav{gap:8px}
+      .nav-actions .btn{padding:10px 12px;min-height:44px;font-size:14px}
+      .headline{font-size:28px}
+      .controls{padding:12px}
+      .row-actions .btn{flex:1 1 48%}
+    }
   </style>
 </head>
 <body>
@@ -113,9 +115,8 @@
         <h1>StreamLab</h1>
       </div>
       <div class="nav-actions">
-        <a class="btn" href="#results">Discover</a>
         <button id="btnFavs" class="btn" title="Show favorites">Favorites</button>
-        <button id="btnTheme" class="btn" title="Toggle theme">Theme</button>
+        <label class="switch" title="Toggle theme"><input id="themeToggle" type="checkbox"><span class="slider"></span></label>
         <button id="btnRandom" class="btn" title="Pick one at random from results">Random</button>
       </div>
     </nav>
@@ -123,7 +124,7 @@
       <div class="container">
         <div class="kicker">Netflix-focused • Region-aware</div>
         <h2 class="headline">Find your next Movie or Series</h2>
-        <p class="sub">Filter by type, region, genre, rating, and runtime. Save favorites, watch trailers, share picks, and load more as you scroll.</p>
+        <p class="sub">Filter by type, region, genre, and rating. Save favorites, watch trailers, share picks, and load more as you scroll.</p>
       </div>
     </section>
   </header>
@@ -149,14 +150,6 @@
         <div class="col-6 col-3">
           <label>Min rating: <span id="ratingValue">6.5</span></label>
           <input type="range" id="minRating" min="0" max="9" step="0.5" value="6.5" />
-        </div>
-        <div class="col-6 col-3">
-          <label>Min runtime (min)</label>
-          <input type="number" id="minRuntime" min="0" max="300" step="10" value="0" />
-        </div>
-        <div class="col-6 col-3">
-          <label>Max runtime (min)</label>
-          <input type="number" id="maxRuntime" min="0" max="300" step="10" value="0" placeholder="0 = any"/>
         </div>
         <div class="col-12 action-row">
           <button id="btnSuggest" class="btn accent">Suggest titles</button>
@@ -204,15 +197,13 @@
   var genreSelect = document.getElementById('genreSelect');
   var ratingRange = document.getElementById('minRating');
   var ratingValue = document.getElementById('ratingValue');
-  var minRuntime = document.getElementById('minRuntime');
-  var maxRuntime = document.getElementById('maxRuntime');
   var resultsEl = document.getElementById('results');
   var btnMovie = document.getElementById('btnMovie');
   var btnTV = document.getElementById('btnTV');
   var btnSuggest = document.getElementById('btnSuggest');
   var btnRandom = document.getElementById('btnRandom');
   var btnFavs = document.getElementById('btnFavs');
-  var btnTheme = document.getElementById('btnTheme');
+  var themeToggle = document.getElementById('themeToggle');
   var btnLoadMore = document.getElementById('btnLoadMore');
   var errorBox = document.getElementById('errorBox');
   var modal = document.getElementById('modal');
@@ -225,7 +216,9 @@
   function bootstrap(){
     // Theme from storage
     var storedTheme = localStorage.getItem('sl_theme');
-    if(storedTheme){ document.documentElement.setAttribute('data-theme', storedTheme); }
+    var current = storedTheme || 'dark';
+    document.documentElement.setAttribute('data-theme', current);
+    if (themeToggle) themeToggle.checked = (current === 'light');
 
     var regions = [
       { code:'US', name:'United States' },
@@ -249,8 +242,8 @@
     btnSuggest.addEventListener('click', suggest);
     btnRandom.addEventListener('click', pickRandom);
     btnFavs.addEventListener('click', showFavs);
-    btnTheme.addEventListener('click', toggleTheme);
     btnLoadMore.addEventListener('click', loadMore);
+    if(themeToggle){ themeToggle.addEventListener('change', toggleThemeFromSwitch); }
 
     window.addEventListener('scroll', onScrollLoadMore, {passive:true});
 
@@ -260,10 +253,10 @@
     loadGenres('movie');
   }
 
-  function toggleTheme(){
+  function toggleThemeFromSwitch(){
     var root = document.documentElement;
-    var cur = root.getAttribute('data-theme') || 'dark';
-    var nxt = cur === 'dark' ? 'light' : 'dark';
+    var isOn = themeToggle.checked;
+    var nxt = isOn ? 'light' : 'dark';
     root.setAttribute('data-theme', nxt);
     localStorage.setItem('sl_theme', nxt);
   }
@@ -295,19 +288,11 @@
   }
 
   function buildDiscoverBase(region, genreId, minRating){
-    var runtimeMin = parseInt(minRuntime.value,10) || 0;
-    var runtimeMax = parseInt(maxRuntime.value,10) || 0;
-
     var base = 'https://api.themoviedb.org/3/discover/' + currentType + '?api_key=' + TMDB_KEY +
                '&watch_region=' + region + '&with_watch_providers=' + cachedProviderIdByRegion[region] +
                '&with_watch_monetization_types=flatrate&include_adult=false&language=en-US' +
                '&sort_by=popularity.desc' + (genreId ? '&with_genres=' + genreId : '') +
                '&vote_average.gte=' + minRating;
-
-    if(currentType === 'movie'){
-      if(runtimeMin>0) base += '&with_runtime.gte=' + runtimeMin;
-      if(runtimeMax>0) base += '&with_runtime.lte=' + runtimeMax;
-    }
     return base;
   }
 
@@ -395,6 +380,7 @@
           '<div class="title">' + escapeHTML(name) + '</div>' +
           '<div class="chip-row"><span class="chip">★ ' + rating + '</span><span class="chip">' + typeLabel + (year?(' • ' + year):'') + '</span></div>' +
           '<div class="overview">' + escapeHTML(item.overview) + '</div>' +
+          '<button class="link" data-action="more">Read more</button>' +
           '<div class="row-actions">' +
             '<a class="btn" data-action="trailer" data-id="' + item.id + '">Trailer</a>' +
             '<a class="btn" data-action="share" data-name="' + encodeURIComponent(name) + '">Share</a>' +
@@ -419,6 +405,13 @@
 
     var shareBtn = cardEl.querySelector('[data-action="share"]');
     shareBtn.addEventListener('click', function(){ shareItem(item); });
+
+    var moreBtn = cardEl.querySelector('[data-action="more"]');
+    var overview = cardEl.querySelector('.overview');
+    moreBtn.addEventListener('click', function(){
+      if(overview.classList.contains('expanded')){ overview.classList.remove('expanded'); moreBtn.textContent='Read more'; }
+      else { overview.classList.add('expanded'); moreBtn.textContent='Show less'; }
+    });
   }
 
   function showFavs(){
@@ -462,7 +455,6 @@
   function showError(msg){ errorBox.style.display='block'; errorBox.textContent=msg }
   function hideError(){ errorBox.style.display='none'; errorBox.textContent='' }
   function loadFavs(){ try{ return JSON.parse(localStorage.getItem(favKey)||'{}') }catch(e){ return {} } }
-
 </script>
 </body>
 </html>
