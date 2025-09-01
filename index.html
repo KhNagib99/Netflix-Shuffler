@@ -52,7 +52,11 @@
     .seg .btn{flex:1}
 
     /* Sticky action bar: Suggest + Load more (mobile-first) */
-    .actionbar{position:sticky;bottom:0;z-index:25;background:linear-gradient(180deg,rgba(0,0,0,0),var(--bg) 30%);padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+    .actionbar{position:sticky;bottom:0;z-index:25;background:linear-gradient(180deg,rgba(0,0,0,0),var(--bg) 30%);padding:6px 12px calc(6px + env(safe-area-inset-bottom));border-top:1px solid var(--line);transition:transform .2s ease}
+.actionbar .btn{width:100%;min-height:44px}
+.actionbar.hide{transform:translateY(120%)}
+@media(min-width:1024px){.actionbar{position:static;padding:0;border-top:0;background:transparent}}
+.has-actionbar{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
     .actionbar .btn{width:100%}
     #btnLoadMore{margin-top:8px;display:none}
 
@@ -189,6 +193,7 @@
   var btnFavs = document.getElementById('btnFavs');
   var themeToggle = document.getElementById('themeToggle');
   var btnLoadMore = document.getElementById('btnLoadMore');
+  var actionbar = document.querySelector('.actionbar');
   var errorBox = document.getElementById('errorBox');
   var modal = document.getElementById('modal');
   var modalClose = document.getElementById('modalClose');
@@ -223,6 +228,7 @@
     themeToggle.addEventListener('change', function(){ var t = themeToggle.checked ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); localStorage.setItem('sl_theme', t); });
 
     window.addEventListener('scroll', onScrollLoadMore, {passive:true});
+    window.addEventListener('scroll', onScrollAutoHide, {passive:true});
 
     modalClose.addEventListener('click', closeModal);
     modal.addEventListener('click', function(e){ if(e.target === modal){ closeModal(); } });
@@ -267,6 +273,7 @@
   }
 
   function suggest(){
+    document.documentElement.classList.add('has-actionbar');
     var region = regionSelect.value || DEFAULT_REGION;
     var genreId = genreSelect.value;
     var minRating = Number(ratingRange.value);
@@ -302,6 +309,19 @@
     if(nextPage>totalPages) return;
     var y = window.innerHeight + window.scrollY;
     if(y > document.body.offsetHeight - 500){ loadMore(); }
+  }
+
+  var _lastY = 0;
+  function onScrollAutoHide(){
+    if(!actionbar) return;
+    var y = window.scrollY;
+    var down = y > _lastY; _lastY = y;
+    // hide when scrolling down after hero, show when scrolling up or near bottom
+    if(y > 200 && down){ actionbar.classList.add('hide'); }
+    else { actionbar.classList.remove('hide'); }
+    var nearBottom = (document.documentElement.scrollHeight - (window.innerHeight + y)) < 400;
+    if(nearBottom){ actionbar.classList.remove('hide'); }
+  }
   }
 
   function appendCards(items){
