@@ -105,6 +105,11 @@
       .controls{padding:12px}
       .row-actions .btn{flex:1 1 48%}
     }
+  
+    /* Floating theme switch (avoids collisions on mobile) */
+    .fab-switch{position:fixed;z-index:60;right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));padding:8px;border-radius:999px;background:transparent}
+    .fab-switch .switch{box-shadow:0 8px 20px rgba(0,0,0,.45)}
+    @media (max-width:480px){.fab-switch{right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom))}}
   </style>
 </head>
 <body>
@@ -116,7 +121,7 @@
       </div>
       <div class="nav-actions">
         <button id="btnFavs" class="btn" title="Show favorites">Favorites</button>
-        <label class="switch" title="Toggle theme"><input id="themeToggle" type="checkbox"><span class="slider"></span></label>
+        
         <button id="btnRandom" class="btn" title="Pick one at random from results">Random</button>
       </div>
     </nav>
@@ -175,7 +180,11 @@
     </div>
   </footer>
 
-<script>
+  <!-- Floating Theme Toggle -->
+  <div class="fab-switch" aria-label="Toggle theme">
+    <label class="switch"><input id="themeToggle" type="checkbox"><span class="slider"></span></label>
+  </div>
+  <script>
   // ===== Config =====
   var TMDB_KEY = "daa745e9c8be7937a25bed1106d9c723";
   var DEFAULT_REGION = "US";
