@@ -7,9 +7,102 @@
   <title>StreamLab — Netflix Picker</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-
   <style>
-    /* (CSS remains same as before — shortened for clarity) */
+    :root{
+      --bg:#0a0a0a; --surface:#0f0f0f; --elev:#141414; --ink:#fafafa; --muted:#a1a1aa; --line:#222; --hit:#ffffff; --hit2:#e5e5e5; --accent:#22c55e;
+    }
+    :root[data-theme="light"]{
+      --bg:#ffffff; --surface:#f8f8f8; --elev:#ffffff; --ink:#0a0a0a; --muted:#52525b; --line:#e5e5e5; --hit:#000; --hit2:#111; --accent:#0ea5e9;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Space Grotesk', Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:var(--bg); color:var(--ink);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; -webkit-text-size-adjust:100%;
+    }
+    a{color:var(--ink);text-decoration:none}
+    img{max-width:100%;height:auto;}
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+
+    header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.9);backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--line)}
+    :root[data-theme="light"] header{background:rgba(255,255,255,.85)}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(12px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 12px calc(16px + env(safe-area-inset-left))}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--hit);}
+    .brand h1{margin:0;font-size:18px;letter-spacing:.18em;text-transform:uppercase;font-weight:800}
+    .nav-actions{display:flex;gap:10px;align-items:center}
+
+    .hero{border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));}
+    .hero .container{padding:24px 16px}
+    .kicker{color:var(--muted);text-transform:uppercase;letter-spacing:.2em;font-size:11px;margin-bottom:6px}
+    .headline{font-size:clamp(24px,5vw,42px);line-height:1.1;font-weight:900;margin:0}
+    .sub{color:#d4d4d8;margin-top:8px;max-width:70ch;font-size:14px}
+    :root[data-theme="light"] .sub{color:#333}
+
+    .controls{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .col-12{grid-column:span 12}
+    @media(min-width:600px){.col-6{grid-column:span 6}}
+    @media(min-width:820px){.col-3{grid-column:span 3}}
+    label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.16em;margin-bottom:6px}
+    select,input[type="range"],input[type="number"],.seg,.btn{width:100%}
+    select,input[type="range"],input[type="number"]{appearance:none;background:var(--elev);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;min-height:44px}
+    .seg{display:flex;gap:8px}
+    .seg .btn{flex:1}
+
+    .btn{
+      cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:14px 18px;min-height:44px;
+      background:var(--elev);color:var(--ink);font-weight:700;letter-spacing:.02em;font-size:14px;
+      transition:transform .08s ease, box-shadow .2s ease, border-color .2s ease; touch-action:manipulation
+    }
+    @media(hover:hover){.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.35)}}
+    .btn[aria-pressed="true"],.btn.accent{background:var(--accent);color:#0a0a0a;border-color:var(--accent)}
+
+    .action-row{display:flex;flex-wrap:wrap;gap:10px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-top:18px}
+    @media(min-width:768px){.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.005));border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s ease, box-shadow .25s ease, border-color .2s ease}
+    @media(hover:hover){.card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:#2a2a2a}}
+    .poster{aspect-ratio:2/3;background:#0b0b0b;display:flex;align-items:center;justify-content:center;position:relative}
+    .poster img{width:100%;height:100%;object-fit:cover;display:block}
+    .fav{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);border:1px solid var(--line);backdrop-filter:blur(4px);border-radius:999px;padding:6px 10px;font-size:12px;color:#fff;cursor:pointer}
+    .fav[aria-pressed="true"]{background:var(--accent);color:#0a0a0a}
+
+    .meta{padding:12px}
+    .title{font-weight:800;line-height:1.15;font-size:15px;letter-spacing:.01em}
+    .chip-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:6px}
+    .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .overview{font-size:13px;color:#e5e5e5;margin-top:8px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+    :root[data-theme="light"] .overview{color:#222}
+    .row-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+    .link{font-size:12px;color:var(--hit2);text-transform:uppercase;letter-spacing:.16em}
+    .link:hover{text-decoration:underline}
+
+    .error{background:#7f1d1d;color:#fee2e2;padding:12px;border-radius:8px;margin-top:12px;font-size:14px;text-align:center}
+
+    #results[data-loading="true"]::before{
+      content:"";display:block;width:44px;height:44px;margin:28px auto 8px auto;
+      border:3px solid #2a2a2a;border-top-color:#ffffff;border-radius:50%;
+      animation:spin .9s linear infinite
+    }
+    #results[data-loading="true"]::after{
+      content:"Finding titles…";display:block;text-align:center;color:var(--muted);font-size:12px;margin-bottom:8px
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+    .modal.open{display:flex}
+    .modal-inner{background:var(--surface);border:1px solid var(--line);border-radius:16px;max-width:900px;width:100%;aspect-ratio:16/9;position:relative;overflow:hidden}
+    .modal-inner iframe{width:100%;height:100%;border:0}
+    .modal-close{position:absolute;top:8px;right:8px;background:var(--elev);border:1px solid var(--line);border-radius:999px;padding:8px 12px;cursor:pointer}
+
+    footer{border-top:1px solid var(--line);margin-top:28px}
+    footer .container{padding:16px;color:var(--muted);text-align:center;font-size:12px}
+
+    @media (prefers-reduced-motion: reduce){ .btn, .card { transition:none !important } }
   </style>
 </head>
 <body>
@@ -167,7 +260,209 @@
     loadGenres('movie');
   }
 
-  // (All remaining JS functions unchanged — same as in your working version)
+  function toggleTheme(){
+    var root = document.documentElement;
+    var cur = root.getAttribute('data-theme') || 'dark';
+    var nxt = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nxt);
+    localStorage.setItem('sl_theme', nxt);
+  }
+
+  function setType(t){ currentType = t; btnMovie.setAttribute('aria-pressed', t==='movie'); btnTV.setAttribute('aria-pressed', t==='tv'); loadGenres(t); }
+
+  function loadGenres(t){
+    genreSelect.innerHTML = '<option value="">Any</option>';
+    if(!cachedGenres[t].length){
+      var url = 'https://api.themoviedb.org/3/genre/' + t + '/list?api_key=' + TMDB_KEY + '&language=en-US';
+      fetchJSON(url).then(function(data){
+        cachedGenres[t] = data && data.genres ? data.genres : [];
+        for (var i=0;i<cachedGenres[t].length;i++){ var g = cachedGenres[t][i]; var opt=document.createElement('option'); opt.value=g.id; opt.textContent=g.name; genreSelect.appendChild(opt); }
+      }).catch(function(){ showError('Failed to load genres.'); });
+    } else {
+      for (var j=0;j<cachedGenres[t].length;j++){ var gg=cachedGenres[t][j]; var op=document.createElement('option'); op.value=gg.id; op.textContent=gg.name; genreSelect.appendChild(op); }
+    }
+  }
+
+  function getNetflixProviderId(region){
+    if(cachedProviderIdByRegion[region]) return Promise.resolve(cachedProviderIdByRegion[region]);
+    var url = 'https://api.themoviedb.org/3/watch/providers/movie?api_key=' + TMDB_KEY + '&watch_region=' + region;
+    return fetchJSON(url).then(function(data){
+      var results = data && data.results ? data.results : [];
+      var netflix=null; for (var i=0;i<results.length;i++){ if(results[i].provider_name==='Netflix'){ netflix=results[i]; break; } }
+      var id = netflix ? netflix.provider_id : 8; // fallback
+      cachedProviderIdByRegion[region] = id; return id;
+    }).catch(function(){ showError('Could not fetch Netflix provider info.'); return 8; });
+  }
+
+  function buildDiscoverBase(region, genreId, minRating){
+    var runtimeMin = parseInt(minRuntime.value,10) || 0;
+    var runtimeMax = parseInt(maxRuntime.value,10) || 0;
+
+    var base = 'https://api.themoviedb.org/3/discover/' + currentType + '?api_key=' + TMDB_KEY +
+               '&watch_region=' + region + '&with_watch_providers=' + cachedProviderIdByRegion[region] +
+               '&with_watch_monetization_types=flatrate&include_adult=false&language=en-US' +
+               '&sort_by=popularity.desc' + (genreId ? '&with_genres=' + genreId : '') +
+               '&vote_average.gte=' + minRating;
+
+    if(currentType === 'movie'){
+      if(runtimeMin>0) base += '&with_runtime.gte=' + runtimeMin;
+      if(runtimeMax>0) base += '&with_runtime.lte=' + runtimeMax;
+    }
+    return base;
+  }
+
+  function suggest(){
+    var region = regionSelect.value || DEFAULT_REGION;
+    var genreId = genreSelect.value;
+    var minRating = Number(ratingRange.value);
+    resultsEl.setAttribute('aria-busy','true');
+    resultsEl.setAttribute('data-loading','true');
+    resultsEl.innerHTML = '';
+    hideError();
+
+    getNetflixProviderId(region).then(function(){
+      discoverBase = buildDiscoverBase(region, genreId, minRating);
+      nextPage = 1;
+      totalPages = 1;
+      lastResults = [];
+      loadMore();
+    });
+  }
+
+  function loadMore(){
+    if(nextPage>totalPages) return;
+    var url = discoverBase + '&page=' + nextPage;
+    fetchJSON(url).then(function(data){
+      totalPages = Math.min(10, (data && data.total_pages) ? data.total_pages : 1);
+      var rs = data && data.results ? data.results : [];
+      var filtered=[];
+      for (var i=0;i<rs.length;i++){
+        var item = rs[i];
+        if(!item.poster_path || !item.overview) continue;
+        if(item.vote_count < 50) continue;
+        filtered.push(item);
+      }
+      lastResults = lastResults.concat(filtered);
+      appendCards(filtered);
+      nextPage++;
+      resultsEl.removeAttribute('data-loading');
+      resultsEl.setAttribute('aria-busy','false');
+      btnLoadMore.style.display = (nextPage<=totalPages) ? 'inline-block' : 'none';
+    }).catch(function(){
+      showError('Something went wrong while fetching data.');
+      resultsEl.removeAttribute('data-loading');
+      resultsEl.setAttribute('aria-busy','false');
+    });
+  }
+
+  function onScrollLoadMore(){
+    if(nextPage>totalPages) return;
+    var scrollPos = window.innerHeight + window.scrollY;
+    var threshold = document.body.offsetHeight - 600;
+    if(scrollPos > threshold){ loadMore(); }
+  }
+
+  function appendCards(items){
+    var frag = document.createDocumentFragment();
+    for (var i=0;i<items.length;i++){
+      var div = document.createElement('div');
+      div.innerHTML = toCardHTML(items[i]);
+      var node = div.firstChild;
+      bindCardActions(node, items[i]);
+      frag.appendChild(node);
+    }
+    resultsEl.appendChild(frag);
+  }
+
+  function renderCards(items){ resultsEl.innerHTML=''; appendCards(items); }
+
+  function toCardHTML(item){
+    var name = currentType==='movie' ? (item.title||item.original_title) : (item.name||item.original_name);
+    var year = (item.release_date || item.first_air_date || '').slice(0,4);
+    var poster = item.poster_path ? (IMG_BASE + item.poster_path) : '';
+    var ratingNum = (item.vote_average != null ? item.vote_average : 0);
+    var rating = ratingNum.toFixed ? ratingNum.toFixed(1) : String(ratingNum);
+    var typeLabel = currentType==='movie' ? 'Movie' : 'Series';
+    var key = currentType + '-' + item.id;
+    var isFav = !!favs[key];
+
+    return (
+      '<article class="card">' +
+        '<div class="poster">' + (poster ? ('<img loading="lazy" alt="' + escapeHTML(name) + ' poster" src="' + poster + '">') : '<span>No poster</span>') +
+          '<button class="fav" data-key="' + key + '" aria-pressed="' + isFav + '">' + (isFav ? '★ Saved' : '☆ Save') + '</button>' +
+        '</div>' +
+        '<div class="meta">' +
+          '<div class="title">' + escapeHTML(name) + '</div>' +
+          '<div class="chip-row"><span class="chip">★ ' + rating + '</span><span class="chip">' + typeLabel + (year?(' • ' + year):'') + '</span></div>' +
+          '<div class="overview">' + escapeHTML(item.overview) + '</div>' +
+          '<div class="row-actions">' +
+            '<a class="btn" data-action="trailer" data-id="' + item.id + '">Trailer</a>' +
+            '<a class="btn" data-action="share" data-name="' + encodeURIComponent(name) + '">Share</a>' +
+            '<a class="btn" href="https://www.netflix.com/search?q=' + encodeURIComponent(name) + '" target="_blank" rel="noopener">Open on Netflix</a>' +
+          '</div>' +
+        '</div>' +
+      '</article>'
+    );
+  }
+
+  function bindCardActions(cardEl, item){
+    var favBtn = cardEl.querySelector('.fav');
+    favBtn.addEventListener('click', function(){
+      var key = favBtn.getAttribute('data-key');
+      if(favs[key]){ delete favs[key]; favBtn.setAttribute('aria-pressed','false'); favBtn.textContent='☆ Save'; }
+      else { favs[key] = item; favBtn.setAttribute('aria-pressed','true'); favBtn.textContent='★ Saved'; }
+      localStorage.setItem(favKey, JSON.stringify(favs));
+    });
+
+    var trailerBtn = cardEl.querySelector('[data-action="trailer"]');
+    trailerBtn.addEventListener('click', function(){ openTrailer(item.id); });
+
+    var shareBtn = cardEl.querySelector('[data-action="share"]');
+    shareBtn.addEventListener('click', function(){ shareItem(item); });
+  }
+
+  function showFavs(){
+    var keys = Object.keys(favs);
+    if(!keys.length){ resultsEl.innerHTML = '<p style="color:var(--muted)">No favorites yet. Tap ☆ Save on any title.</p>'; return; }
+    var items = keys.map(function(k){ return favs[k]; });
+    lastResults = items.slice();
+    renderCards(items);
+    btnLoadMore.style.display='none';
+  }
+
+  function openTrailer(id){
+    var url = 'https://api.themoviedb.org/3/' + currentType + '/' + id + '/videos?api_key=' + TMDB_KEY + '&language=en-US';
+    fetchJSON(url).then(function(data){
+      var vids = data && data.results ? data.results : [];
+      var yt = null;
+      for (var i=0;i<vids.length;i++){ var v=vids[i]; if(v.site==='YouTube' && (v.type==='Trailer' || v.type==='Teaser')){ yt=v; break; } }
+      if(!yt){ showError('No trailer available.'); return; }
+      ytFrame.src = 'https://www.youtube.com/embed/' + yt.key + '?autoplay=1&rel=0';
+      modal.classList.add('open');
+    }).catch(function(){ showError('Failed to load trailer.'); });
+  }
+  function closeModal(){ ytFrame.src=''; modal.classList.remove('open'); }
+
+  function shareItem(item){
+    var name = currentType==='movie' ? (item.title||item.original_title) : (item.name||item.original_name);
+    var url = 'https://www.netflix.com/search?q=' + encodeURIComponent(name);
+    if(navigator.share){
+      navigator.share({ title: name + ' — StreamLab', text: 'Found on StreamLab', url: url }).catch(function(){});
+    } else {
+      copyText(url);
+      alert('Share link copied to clipboard!');
+    }
+  }
+
+  function pickRandom(){ if(!lastResults.length){ btnSuggest.click(); return; } var one = lastResults[Math.floor(Math.random()*lastResults.length)]; renderCards([one]); }
+
+  function fetchJSON(url){ return fetch(url).then(function(res){ if(!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url); return res.json(); }); }
+  function escapeHTML(s){ return String(s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]); }); }
+  function copyText(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta); }
+  function showError(msg){ errorBox.style.display='block'; errorBox.textContent=msg }
+  function hideError(){ errorBox.style.display='none'; errorBox.textContent='' }
+  function loadFavs(){ try{ return JSON.parse(localStorage.getItem(favKey)||'{}') }catch(e){ return {} } }
+
 </script>
 </body>
 </html>
